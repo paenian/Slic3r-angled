@@ -435,7 +435,7 @@ sub title { 'Print Settings' }
 
 sub options {
     return qw(
-        layer_height first_layer_height
+        layer_height first_layer_height slice_angle
         adaptive_slicing adaptive_slicing_quality match_horizontal_surfaces
         perimeters spiral_vase
         top_solid_layers min_shell_thickness min_top_bottom_shell_thickness bottom_solid_layers
@@ -514,6 +514,7 @@ sub build {
             my $optgroup = $page->new_optgroup('Layer height');
             $optgroup->append_single_option_line('layer_height');
             $optgroup->append_single_option_line('first_layer_height');
+            $optgroup->append_single_option_line('slice_angle');
             $optgroup->append_single_option_line('adaptive_slicing');
             $optgroup->append_single_option_line('adaptive_slicing_quality');
             $optgroup->get_field('adaptive_slicing_quality')->set_scale(1);

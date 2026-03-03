@@ -171,6 +171,12 @@ sub validate {
 
     die "Adaptive slicing requires a non-relative first layer height.\n"
         if $self->get_value('adaptive_slicing') == 1 and $self->first_layer_height =~ /^(?:\d*(?:\.\d+)?)%$/;
+
+    # --slice-angle
+    die "Invalid value for --slice-angle\n"
+        if $self->slice_angle !~ /^\d*(?:\.\d+)?$/;
+    die "--slice-angle must be between 0 and 89.9 degrees\n"
+        if $self->slice_angle < 0 || $self->slice_angle > 89.9;
     
     # --filament-diameter
     die "Invalid value for --filament-diameter\n"
