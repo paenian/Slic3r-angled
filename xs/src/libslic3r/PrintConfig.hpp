@@ -163,6 +163,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     ConfigOptionBool                infill_only_where_needed;
     ConfigOptionBool                interface_shells;
     ConfigOptionFloat               layer_height;
+    ConfigOptionFloat               slice_angle;
     ConfigOptionBool                match_horizontal_surfaces;
     ConfigOptionInt                 raft_layers;
     ConfigOptionFloat               regions_overlap;
@@ -203,6 +204,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         OPT_PTR(infill_only_where_needed);
         OPT_PTR(interface_shells);
         OPT_PTR(layer_height);
+        OPT_PTR(slice_angle);
         OPT_PTR(match_horizontal_surfaces);
         OPT_PTR(raft_layers);
         OPT_PTR(regions_overlap);

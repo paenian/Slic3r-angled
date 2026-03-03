@@ -3,12 +3,14 @@
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
 #include "Log.hpp"
+#include "SlicingPlane.hpp"
 #include "TransformationMatrix.hpp"
 #include <boost/version.hpp>
 #if BOOST_VERSION >= 107300
 #include <boost/bind/bind.hpp>
 #endif
 #include <algorithm>
+#include <cmath>
 #include <vector>
 #include <limits>
 #include <stdexcept>
@@ -754,6 +756,18 @@ std::vector<coordf_t> PrintObject::generate_object_layers(coordf_t first_layer_h
 void PrintObject::_slice()
 {
 
+    const SlicingPlane slicing_plane(this->config.slice_angle.value);
+    if (!slicing_plane.is_horizontal()) {
+        if (this->config.adaptive_slicing.value)
+            throw std::runtime_error("slice_angle is not yet compatible with adaptive slicing");
+        if (this->config.raft_layers > 0)
+            throw std::runtime_error("slice_angle is not yet compatible with raft layers");
+        if (this->config.support_material || this->config.support_material_enforce_layers > 0)
+            throw std::runtime_error("slice_angle is not yet compatible with support material generation");
+        if (std::abs(slicing_plane.angle_cos()) < 1e-6)
+            throw std::runtime_error("slice_angle is too steep for stable layer progression");
+    }
+
     coordf_t raft_height = 0;
     coordf_t first_layer_height = this->config.first_layer_height.get_abs_value(this->config.layer_height.value);
 
@@ -796,14 +810,18 @@ void PrintObject::_slice()
         // Reserve object layers for the raft. Last layer of the raft is the contact layer.
         slice_zs.reserve(object_layers.size());
         Layer *prev = nullptr;
+        coordf_t lo_n = 0.0;
+        coordf_t hi_n = 0.0;
         coordf_t lo = raft_height;
         coordf_t hi = lo;
         for (size_t i_layer = 0; i_layer < object_layers.size(); i_layer++) {
-            lo = hi;  // store old value
-            hi = object_layers[i_layer] + raft_height;
-            coordf_t slice_z = 0.5 * (lo + hi) - raft_height;
-            Layer *layer = this->add_layer(id++, hi - lo, hi, slice_z);
-            slice_zs.push_back(float(slice_z));
+            lo = hi;
+            lo_n = hi_n;
+            hi_n = object_layers[i_layer];
+            hi = coordf_t(slicing_plane.to_machine_z(hi_n)) + raft_height;
+            const coordf_t slice_n = 0.5 * (lo_n + hi_n);
+            Layer *layer = this->add_layer(id++, hi - lo, hi, slice_n);
+            slice_zs.push_back(float(slice_n));
             if (prev != nullptr) {
                 prev->upper_layer = layer;
                 layer->lower_layer = prev;
@@ -817,19 +835,19 @@ void PrintObject::_slice()
 
     if (this->print()->regions.size() == 1) {
         // Optimized for a single region. Slice the single non-modifier mesh.
-        std::vector<ExPolygons> expolygons_by_layer = this->_slice_region(0, slice_zs, false);
+        std::vector<ExPolygons> expolygons_by_layer = this->_slice_region(0, slice_zs, false, this->config.slice_angle.value);
         for (size_t layer_id = 0; layer_id < expolygons_by_layer.size(); ++ layer_id)
             this->layers[layer_id]->regions.front()->slices.append(std::move(expolygons_by_layer[layer_id]), stInternal);
     } else {
         // Slice all non-modifier volumes.
         for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
-            std::vector<ExPolygons> expolygons_by_layer = this->_slice_region(region_id, slice_zs, false);
+            std::vector<ExPolygons> expolygons_by_layer = this->_slice_region(region_id, slice_zs, false, this->config.slice_angle.value);
             for (size_t layer_id = 0; layer_id < expolygons_by_layer.size(); ++ layer_id)
                 this->layers[layer_id]->regions[region_id]->slices.append(std::move(expolygons_by_layer[layer_id]), stInternal);
         }
         // Slice all modifier volumes.
         for (size_t region_id = 0; region_id < this->print()->regions.size(); ++ region_id) {
-            std::vector<ExPolygons> expolygons_by_layer = this->_slice_region(region_id, slice_zs, true);
+            std::vector<ExPolygons> expolygons_by_layer = this->_slice_region(region_id, slice_zs, true, this->config.slice_angle.value);
             // loop through the other regions and 'steal' the slices belonging to this one
             for (size_t other_region_id = 0; other_region_id < this->print()->regions.size(); ++ other_region_id) {
                 if (region_id == other_region_id)
@@ -936,7 +954,7 @@ void PrintObject::_slice()
 
 // called from slice()
 std::vector<ExPolygons>
-PrintObject::_slice_region(size_t region_id, std::vector<float> z, bool modifier)
+PrintObject::_slice_region(size_t region_id, std::vector<float> z, bool modifier, double slice_angle_deg)
 {
     std::vector<ExPolygons> layers;
     std::vector<int> &region_volumes = this->region_volumes[region_id];
@@ -967,6 +985,11 @@ PrintObject::_slice_region(size_t region_id, std::vector<float> z, bool modifier
         mesh.merge(volume.get_transformed_mesh(trafo));
     }
     if (mesh.facets_count() == 0) return layers;
+
+    if (std::abs(slice_angle_deg) > 1e-9) {
+        mesh.rotate_x(float(-slice_angle_deg * M_PI / 180.0));
+        mesh.align_to_bed();
+    }
 
     // perform actual slicing
     TriangleMeshSlicer<Z>(&mesh).slice(z, &layers);
