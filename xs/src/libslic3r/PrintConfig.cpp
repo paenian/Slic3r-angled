@@ -812,7 +812,7 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = "°";
     def->cli = "slice-angle=f";
     def->min = 0;
-    def->max = 89.9;
+    def->max = 90;
     def->default_value = new ConfigOptionFloat(0);
 
     def = this->add("match_horizontal_surfaces", coBool);
