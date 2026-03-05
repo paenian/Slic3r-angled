@@ -80,3 +80,27 @@ Contributions by Henrik Brix Andersen, Vojtech Bubnik, Nicolas Dandrimont, Mark 
 ### How can I invoke Slic3r using the command line?
 
 The command line is documented in the relevant [manual page](https://manual.slic3r.org/advanced/command-line).
+
+
+### Slice angle (`slice_angle`)
+
+`slice_angle` rotates the slicing orientation around the X axis for the entire print.
+
+* **Units and range:** degrees, valid range `0..90`.
+* **Legacy compatibility:** `0` keeps legacy behavior (no additional slicing rotation), while `90` targets vertical slicing.
+* **Supports / rafts / brims:** these features still generate normally and follow the rotated slice orientation. Their exact contact pattern may differ slightly versus `0` because the geometry is sliced at a different angle.
+* **Initial implementation limitation:** one global angle is applied to the whole print; per-object, per-layer, or modifier-specific slice angles are not supported.
+
+Migration note: Existing presets remain unchanged because the default value is `0`.
+
+Deterministic configuration example:
+
+```ini
+# INI profile
+slice_angle = 30
+```
+
+```bash
+# CLI
+slic3r --slice-angle 30 model.stl
+```
