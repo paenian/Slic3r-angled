@@ -190,8 +190,31 @@ SCENARIO("Config accessor functions perform as expected.") {
         WHEN("getX called on an unset option.") {
             THEN("The default is returned.") {
                 REQUIRE(config->getFloat("layer_height") == 0.3);
+                REQUIRE(config->getFloat("slice_angle") == 0.0);
                 REQUIRE(config->getInt("raft_layers") == 0);
                 REQUIRE(config->getBool("support_material") == false);
+            }
+        }
+
+        WHEN("slice_angle is set to 30, a valid value") {
+            config->set("slice_angle", 30.0);
+            THEN("The config is read as valid.") {
+                REQUIRE_NOTHROW(config->validate());
+                REQUIRE(config->getFloat("slice_angle") == 30.0);
+            }
+        }
+
+        WHEN("slice_angle is set to 0, a valid boundary value") {
+            config->set("slice_angle", 0.0);
+            THEN("The config is read as valid.") {
+                REQUIRE_NOTHROW(config->validate());
+            }
+        }
+
+        WHEN("slice_angle is set out of range") {
+            config->set("slice_angle", 90.0);
+            THEN("An InvalidOptionException exception is thrown.") {
+                REQUIRE_THROWS_AS(config->validate(), InvalidOptionException);
             }
         }
 

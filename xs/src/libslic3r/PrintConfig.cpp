@@ -805,6 +805,16 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0.3);
 
+    def = this->add("slice_angle", coFloat);
+    def->label = __TRANS("Slice angle");
+    def->category = __TRANS("Layers and Perimeters");
+    def->tooltip = __TRANS("Angle of slicing planes in degrees. 0 = horizontal layers; >0 = angled slicing planes.");
+    def->sidetext = "°";
+    def->cli = "slice-angle=f";
+    def->min = 0;
+    def->max = 89.9;
+    def->default_value = new ConfigOptionFloat(0);
+
     def = this->add("match_horizontal_surfaces", coBool);
     def->label = "Match horizontal surfaces";
     def->tooltip = "Try to match horizontal surfaces during the slicing process. Matching is not guaranteed, very small surfaces and multiple surfaces with low vertical distance might cause bad results.";
