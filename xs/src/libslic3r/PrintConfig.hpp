@@ -168,6 +168,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
     ConfigOptionInt                 raft_layers;
     ConfigOptionFloat               regions_overlap;
     ConfigOptionEnum<SeamPosition>  seam_position;
+    ConfigOptionFloat               slice_angle;
     ConfigOptionBool                support_material;
     ConfigOptionInt                 support_material_angle;
     ConfigOptionBool                support_material_buildplate_only;
@@ -209,6 +210,7 @@ class PrintObjectConfig : public virtual StaticPrintConfig
         OPT_PTR(raft_layers);
         OPT_PTR(regions_overlap);
         OPT_PTR(seam_position);
+        OPT_PTR(slice_angle);
         OPT_PTR(support_material);
         OPT_PTR(support_material_angle);
         OPT_PTR(support_material_buildplate_only);
@@ -480,6 +482,7 @@ class PrintConfig : public GCodeConfig
     ConfigOptionInt                 skirts;
     ConfigOptionInt                 slowdown_below_layer_time;
     ConfigOptionBool                spiral_vase;
+    ConfigOptionFloat               slice_angle;
     ConfigOptionInt                 standby_temperature_delta;
     ConfigOptionInts                temperature;
     ConfigOptionInt                 threads;
@@ -542,6 +545,7 @@ class PrintConfig : public GCodeConfig
         OPT_PTR(skirt_distance);
         OPT_PTR(skirt_height);
         OPT_PTR(skirts);
+        OPT_PTR(slice_angle);
         OPT_PTR(slowdown_below_layer_time);
         OPT_PTR(spiral_vase);
         OPT_PTR(standby_temperature_delta);

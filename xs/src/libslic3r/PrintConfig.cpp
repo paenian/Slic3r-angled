@@ -806,13 +806,13 @@ PrintConfigDef::PrintConfigDef()
     def->default_value = new ConfigOptionFloat(0.3);
 
     def = this->add("slice_angle", coFloat);
-    def->label = "Slice angle";
-    def->category = "Layers and Perimeters";
-    def->tooltip = "Tilt of the slicing plane family in degrees. 0 keeps classic horizontal slicing.";
-    def->sidetext = "deg";
+    def->label = __TRANS("Slice angle");
+    def->category = __TRANS("Layers and Perimeters");
+    def->tooltip = __TRANS("Angle of slicing planes in degrees. 0 = horizontal layers; >0 = angled slicing planes.");
+    def->sidetext = "°";
     def->cli = "slice-angle=f";
-    def->min = -45;
-    def->max = 45;
+    def->min = 0;
+    def->max = 90;
     def->default_value = new ConfigOptionFloat(0);
 
     def = this->add("match_horizontal_surfaces", coBool);
@@ -1290,6 +1290,16 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "skirts=i";
     def->min = 0;
     def->default_value = new ConfigOptionInt(1);
+
+    def = this->add("slice_angle", coFloat);
+    def->label = __TRANS("Slice angle");
+    def->category = __TRANS("Layers and Perimeters");
+    def->tooltip = __TRANS("Rotates slicing orientation around X in degrees. Valid range is 0°-90°. Set to 0° for legacy behavior (no additional rotation). Support material, raft, and brim generation remain enabled and follow the rotated slices; exact first-layer contact and support interfaces may shift slightly from the 0° output. Initial implementation limitation: this setting applies a single global angle per print and cannot vary by object, layer, or modifier.");
+    def->sidetext = "°";
+    def->cli = "slice-angle=f";
+    def->min = 0;
+    def->max = 90;
+    def->default_value = new ConfigOptionFloat(0);
     
     def = this->add("slowdown_below_layer_time", coInt);
     def->label = __TRANS("Slow down if layer print time is below");
